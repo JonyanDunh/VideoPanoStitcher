@@ -14,6 +14,7 @@ import numpy as np
 # success2, frame2 = videoCapture2.read()
 # cv2.imwrite("image/1.jpg",frame1)
 # cv2.imwrite("image/2.jpg",frame2)
+print('first:')
 time_start = time.time()
 settings = {  # The whole plan should be considered
     "crop": False,
@@ -22,7 +23,23 @@ settings = {  # The whole plan should be considered
 stitcher = AffineStitcher(**settings)
 panorama = stitcher.stitch(["video/video_pano1.mp4", "video/video_pano2.mp4", "video/video_pano3.mp4", "video/video_pano4.mp4"])
 time_end = time.time()
-# print('time cost', time_end - time_start, 's')
+print('all time cost', time_end - time_start, 's')
+plt.imshow(panorama)
+plt.show()
+
+print('secondly:')
+time_start = time.time()
+panorama = stitcher.stitch(["video/video_pano1.mp4", "video/video_pano2.mp4", "video/video_pano3.mp4", "video/video_pano4.mp4"])
+time_end = time.time()
+print('all time cost', time_end - time_start, 's')
+plt.imshow(panorama)
+plt.show()
+
+print('thirdly:')
+time_start = time.time()
+panorama = stitcher.stitch(["video/video_pano1.mp4", "video/video_pano2.mp4", "video/video_pano3.mp4", "video/video_pano4.mp4"])
+time_end = time.time()
+print('all time cost', time_end - time_start, 's')
 plt.imshow(panorama)
 plt.show()
 

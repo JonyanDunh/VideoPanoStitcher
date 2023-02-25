@@ -1,3 +1,5 @@
+import time
+
 import cv2 as cv
 import cv2
 from matplotlib import pyplot as plt
@@ -69,12 +71,15 @@ class ImageHandler:
     def input_images(self):
         self.img_sizes = []
         for name in self.img_names:
+
             videoCapture = cv2.VideoCapture(name)
+
             img = videoCapture.read()[1]
             # img = self.read_image(name)
             size = self.get_image_size(img)
             self.img_sizes.append(size)
             self.set_scaler_scales()
+
             yield img, size
 
 

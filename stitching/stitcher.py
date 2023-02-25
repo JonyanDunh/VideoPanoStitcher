@@ -49,8 +49,8 @@ class Stitcher:
 
     def __init__(self, **kwargs):
         self.initialize_stitcher(**kwargs)
-        self.features=None
-        self.matches=None
+        self.features = None
+        self.matches = None
 
     def initialize_stitcher(self, **kwargs):
         self.settings = self.DEFAULT_SETTINGS.copy()
@@ -90,34 +90,23 @@ class Stitcher:
         self.timelapser = Timelapser(args.timelapse)
 
     def stitch(self, img_names):
-        time_start = time.time()
         self.initialize_registration(img_names)
         imgs = self.resize_medium_resolution()
-        time_end = time.time()
-        print('fresize time cost', time_end - time_start, 's')
-        time_start = time.time()
-        features = self.find_features(imgs)
-        matches = self.match_features(features)
-        time_end = time.time()
-        print('features&&matches time cost', time_end - time_start, 's')
-        time_start = time.time()
+        features = (self.find_features(imgs) if self.features == None else self.features)
+        matches = (self.match_features(features) if self.matches == None else self.matches)
+        self.features = features
+        self.matches = matches
         imgs, features, matches = self.subset(imgs, features, matches)
         cameras = self.estimate_camera_parameters(features, matches)
         cameras = self.refine_camera_parameters(features, matches, cameras)
         cameras = self.perform_wave_correction(cameras)
         self.estimate_scale(cameras)
-        time_end = time.time()
-        print('cameras time cost', time_end - time_start, 's')
-        time_start = time.time()
         imgs = self.resize_low_resolution(imgs)
         imgs, masks, corners, sizes = self.warp_low_resolution(imgs, cameras)
         self.prepare_cropper(imgs, masks, corners, sizes)
         imgs, masks, corners, sizes = self.crop_low_resolution(
             imgs, masks, corners, sizes
         )
-        time_end = time.time()
-        print('resize_low_resolution time cost', time_end - time_start, 's')
-        time_start = time.time()
         self.estimate_exposure_errors(corners, imgs, masks)
         seam_masks = self.find_seam_masks(imgs, corners, masks)
         imgs = self.resize_final_resolution()
@@ -126,23 +115,17 @@ class Stitcher:
             imgs, masks, corners, sizes
         )
         self.set_masks(masks)
-        time_end = time.time()
-        print('set_masks time cost', time_end - time_start, 's')
-        time_start = time.time()
         imgs = self.compensate_exposure_errors(corners, imgs)
         seam_masks = self.resize_seam_masks(seam_masks)
-
         self.initialize_composition(corners, sizes)
         self.blend_images(imgs, seam_masks, corners)
-        time_end = time.time()
-        print('time cost', time_end - time_start, 's')
         return self.create_final_panorama()
+
     def initialize_registration(self, img_names):
         self.img_handler.set_img_names(img_names)
 
     def resize_medium_resolution(self):
         return list(self.img_handler.resize_to_medium_resolution())
-
 
     def find_features(self, imgs):
         return [self.detector.detect_features(img) for img in imgs]
