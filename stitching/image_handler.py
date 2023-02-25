@@ -1,4 +1,6 @@
 import cv2 as cv
+import cv2
+from matplotlib import pyplot as plt
 
 from .megapix_scaler import MegapixDownscaler
 from .stitching_error import StitchingError
@@ -40,6 +42,8 @@ class ImageHandler:
     def resize_to_medium_resolution(self):
         return self.read_and_resize_imgs(self.medium_scaler)
 
+
+
     def resize_to_low_resolution(self, medium_imgs=None):
         if medium_imgs and self.scales_set:
             return self.resize_imgs_by_scaler(medium_imgs, self.low_scaler)
@@ -51,6 +55,7 @@ class ImageHandler:
     def read_and_resize_imgs(self, scaler):
         for img, size in self.input_images():
             yield self.resize_img_by_scaler(scaler, size, img)
+
 
     def resize_imgs_by_scaler(self, imgs, scaler):
         for img, size in zip(imgs, self.img_sizes):
@@ -64,11 +69,15 @@ class ImageHandler:
     def input_images(self):
         self.img_sizes = []
         for name in self.img_names:
-            img = self.read_image(name)
+            videoCapture = cv2.VideoCapture(name)
+            img = videoCapture.read()[1]
+            # img = self.read_image(name)
             size = self.get_image_size(img)
             self.img_sizes.append(size)
             self.set_scaler_scales()
             yield img, size
+
+
 
     @staticmethod
     def get_image_size(img):
