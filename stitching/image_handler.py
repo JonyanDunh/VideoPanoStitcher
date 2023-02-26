@@ -33,14 +33,14 @@ class ImageHandler:
         self.final_scaler = MegapixDownscaler(final_megapix)
 
         self.scales_set = False
-        self.img_names = []
+        #self.img_names = []
         self.img_sizes = []
         self.FpsArray=[]
 
-    def set_img_names(self, img_names):
-        if len(img_names) < 2:
-            raise StitchingError("2 or more Images needed for Stitching")
-        self.img_names = img_names
+    # def set_img_names(self, img_names):
+    #     if len(img_names) < 2:
+    #         raise StitchingError("2 or more Images needed for Stitching")
+    #     self.img_names = img_names
     def set_Fps_Array(self, FpsArray):
         self.FpsArray =FpsArray
 

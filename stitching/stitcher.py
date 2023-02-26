@@ -89,17 +89,21 @@ class Stitcher:
         self.blender = Blender(args.blender_type, args.blend_strength)
         self.timelapser = Timelapser(args.timelapse)
 
-    def stitch(self, img_names,FpsArray):
-        self.initialize_registration(img_names,FpsArray)
+    def stitch(self,FpsArray,features,matches):
+        self.initialize_registration(FpsArray)
         imgs = self.resize_medium_resolution()
-        features = (self.find_features(imgs) if self.features == None else self.features)
-        matches = (self.match_features(features) if self.matches == None else self.matches)
-        self.features = features
-        self.matches = matches
+
+        if (features is None) and (matches is None):
+            features = self.find_features(imgs)
+            matches = self.match_features(features)
+
+
         imgs, features, matches = self.subset(imgs, features, matches)
+
         cameras = self.estimate_camera_parameters(features, matches)
         cameras = self.refine_camera_parameters(features, matches, cameras)
         cameras = self.perform_wave_correction(cameras)
+
         self.estimate_scale(cameras)
         imgs = self.resize_low_resolution(imgs)
         imgs, masks, corners, sizes = self.warp_low_resolution(imgs, cameras)
@@ -107,22 +111,24 @@ class Stitcher:
         imgs, masks, corners, sizes = self.crop_low_resolution(
             imgs, masks, corners, sizes
         )
+
         self.estimate_exposure_errors(corners, imgs, masks)
         seam_masks = self.find_seam_masks(imgs, corners, masks)
         imgs = self.resize_final_resolution()
         imgs, masks, corners, sizes = self.warp_final_resolution(imgs, cameras)
+
         imgs, masks, corners, sizes = self.crop_final_resolution(
             imgs, masks, corners, sizes
         )
+
         self.set_masks(masks)
         imgs = self.compensate_exposure_errors(corners, imgs)
         seam_masks = self.resize_seam_masks(seam_masks)
         self.initialize_composition(corners, sizes)
         self.blend_images(imgs, seam_masks, corners)
-        return self.create_final_panorama()
+        return self.create_final_panorama(),features,matches
 
-    def initialize_registration(self, img_names,FpsArray):
-        self.img_handler.set_img_names(img_names)
+    def initialize_registration(self, FpsArray):
         self.img_handler.set_Fps_Array(FpsArray)
 
     def resize_medium_resolution(self):
@@ -135,14 +141,16 @@ class Stitcher:
         return self.matcher.match_features(features)
 
     def subset(self, imgs, features, matches):
-        names, sizes, imgs, features, matches = self.subsetter.subset(
-            self.img_handler.img_names,
+        #names,
+        sizes, imgs, features, matches = self.subsetter.subset(
+            #self.img_handler.img_names,
             self.img_handler.img_sizes,
             imgs,
             features,
             matches,
         )
-        self.img_handler.img_names, self.img_handler.img_sizes = names, sizes
+        #self.img_handler.img_names=names
+        self.img_handler.img_sizes = sizes
         return imgs, features, matches
 
     def subset_video(self, imgs, features, matches):
