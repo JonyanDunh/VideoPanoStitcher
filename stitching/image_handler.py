@@ -35,11 +35,14 @@ class ImageHandler:
         self.scales_set = False
         self.img_names = []
         self.img_sizes = []
+        self.FpsArray=[]
 
     def set_img_names(self, img_names):
         if len(img_names) < 2:
             raise StitchingError("2 or more Images needed for Stitching")
         self.img_names = img_names
+    def set_Fps_Array(self, FpsArray):
+        self.FpsArray =FpsArray
 
     def resize_to_medium_resolution(self):
         return self.read_and_resize_imgs(self.medium_scaler)
@@ -70,16 +73,11 @@ class ImageHandler:
 
     def input_images(self):
         self.img_sizes = []
-        for name in self.img_names:
-
-            videoCapture = cv2.VideoCapture(name)
-
-            img = videoCapture.read()[1]
-            # img = self.read_image(name)
+        for Fps in self.FpsArray:
+            img = Fps[1]
             size = self.get_image_size(img)
             self.img_sizes.append(size)
             self.set_scaler_scales()
-
             yield img, size
 
 

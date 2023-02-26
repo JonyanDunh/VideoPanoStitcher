@@ -89,8 +89,8 @@ class Stitcher:
         self.blender = Blender(args.blender_type, args.blend_strength)
         self.timelapser = Timelapser(args.timelapse)
 
-    def stitch(self, img_names):
-        self.initialize_registration(img_names)
+    def stitch(self, img_names,FpsArray):
+        self.initialize_registration(img_names,FpsArray)
         imgs = self.resize_medium_resolution()
         features = (self.find_features(imgs) if self.features == None else self.features)
         matches = (self.match_features(features) if self.matches == None else self.matches)
@@ -121,8 +121,9 @@ class Stitcher:
         self.blend_images(imgs, seam_masks, corners)
         return self.create_final_panorama()
 
-    def initialize_registration(self, img_names):
+    def initialize_registration(self, img_names,FpsArray):
         self.img_handler.set_img_names(img_names)
+        self.img_handler.set_Fps_Array(FpsArray)
 
     def resize_medium_resolution(self):
         return list(self.img_handler.resize_to_medium_resolution())
