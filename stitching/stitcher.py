@@ -60,7 +60,7 @@ class Stitcher:
 
         args = SimpleNamespace(**self.settings)
         self.img_handler = ImageHandler(
-            args.medium_megapix, args.low_megapix, args.final_megapix
+            args.medium_megapix, args.low_megapix, 0.3
         )
         if args.detector in ("orb", "sift"):
             self.detector = FeatureDetector(args.detector, nfeatures=args.nfeatures)
@@ -87,13 +87,14 @@ class Stitcher:
             args.compensator, args.nr_feeds, args.block_size
         )
         self.seam_finder = SeamFinder(args.finder)
+
         self.blender = Blender(args.blender_type, args.blend_strength)
         self.timelapser = Timelapser(args.timelapse)
 
     def stitch(self,FpsArray,features,matches,seam_masks):
 
         self.initialize_registration(FpsArray)
-        imgs=self.resize_low_resolution()
+
         imgs = self.resize_medium_resolution()
 
         if (features is None) and (matches is None):
@@ -107,10 +108,9 @@ class Stitcher:
         self.estimate_scale(cameras)
 
         imgs = self.resize_low_resolution(imgs)
-        time_start = time.time()
+
         imgs, masks, corners, sizes = self.warp_low_resolution(imgs, cameras)
-        time_end = time.time()
-        print('time cost', time_end - time_start, 's')
+
         self.prepare_cropper(imgs, masks, corners, sizes)
         # time_start = time.time()
         # imgs, masks, corners, sizes = self.crop_low_resolution(
@@ -269,6 +269,7 @@ class Stitcher:
                     self.img_handler.img_names[idx], img, corner
                 )
             else:
+
                 self.blender.feed(img, mask, corner)
 
 

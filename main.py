@@ -28,6 +28,7 @@ def runStitcher(threadID, FpsArray):
         features=tmp_features
         matches=tmp_matches
         seam_masks=tmp_seam_masks
+    # print(panorama.shape)
     return panorama
 VideoCaptureArray = [cv2.VideoCapture("video/video_pano1.mp4"),
                      cv2.VideoCapture("video/video_pano2.mp4"),
@@ -42,6 +43,7 @@ class ThreadWithReturnValue(Thread):
         return self._return
 if __name__ == '__main__':
     time_start = time.time()
+    videowriter = cv2.VideoWriter('output/video1.avi', cv2.VideoWriter_fourcc(*'MJPG'), 23, (992, 558))
     for t in range(1):
         for ChildId in range(100):
             FpsArray = []
@@ -57,12 +59,11 @@ if __name__ == '__main__':
             for thread in thread_list:
                 thread.start()
             for thread in thread_list:
-                thread.join()
-
-                # cv2.imshow('frame', thread.join())
-            if cv2.waitKey(1) == ord('q'):
-                break
+                # videowriter.write(thread.join())
+                # thread.join()
+                cv2.imshow('frame', thread.join())
+                cv2.waitKey(1)
             fps_time_end = time.time()
-            print('per '+str(thread_num)+' fps time cost', fps_time_end - fps_time_start, 's')
+            print('fps ', 1/(fps_time_end - fps_time_start))
     time_end = time.time()
     print('all time cost', time_end - time_start, 's')
