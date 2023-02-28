@@ -23,13 +23,15 @@ class SeamFinder:
         cv.detail.SeamFinder_NO
     )
 
-    DEFAULT_SEAM_FINDER = list(SEAM_FINDER_CHOICES.keys())[0]
+    DEFAULT_SEAM_FINDER = list(SEAM_FINDER_CHOICES.keys())[5]
 
     def __init__(self, finder=DEFAULT_SEAM_FINDER):
         self.finder = SeamFinder.SEAM_FINDER_CHOICES[finder]
 
     def find(self, imgs, corners, masks):
+
         imgs_float = [img.astype(np.float32) for img in imgs]
+
         return self.finder.find(imgs_float, corners, masks)
 
     @staticmethod

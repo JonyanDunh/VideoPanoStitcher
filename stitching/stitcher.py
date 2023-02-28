@@ -2,6 +2,7 @@ import time
 from types import SimpleNamespace
 
 from matplotlib import pyplot as plt
+from numba import jit
 
 from .blender import Blender
 from .camera_adjuster import CameraAdjuster
@@ -89,44 +90,55 @@ class Stitcher:
         self.blender = Blender(args.blender_type, args.blend_strength)
         self.timelapser = Timelapser(args.timelapse)
 
-    def stitch(self,FpsArray,features,matches):
+    def stitch(self,FpsArray,features,matches,seam_masks):
+
         self.initialize_registration(FpsArray)
+        imgs=self.resize_low_resolution()
         imgs = self.resize_medium_resolution()
 
         if (features is None) and (matches is None):
             features = self.find_features(imgs)
             matches = self.match_features(features)
 
-
         imgs, features, matches = self.subset(imgs, features, matches)
-
         cameras = self.estimate_camera_parameters(features, matches)
         cameras = self.refine_camera_parameters(features, matches, cameras)
         cameras = self.perform_wave_correction(cameras)
-
         self.estimate_scale(cameras)
-        imgs = self.resize_low_resolution(imgs)
-        imgs, masks, corners, sizes = self.warp_low_resolution(imgs, cameras)
-        self.prepare_cropper(imgs, masks, corners, sizes)
-        imgs, masks, corners, sizes = self.crop_low_resolution(
-            imgs, masks, corners, sizes
-        )
 
-        self.estimate_exposure_errors(corners, imgs, masks)
+        imgs = self.resize_low_resolution(imgs)
+        time_start = time.time()
+        imgs, masks, corners, sizes = self.warp_low_resolution(imgs, cameras)
+        time_end = time.time()
+        print('time cost', time_end - time_start, 's')
+        self.prepare_cropper(imgs, masks, corners, sizes)
+        # time_start = time.time()
+        # imgs, masks, corners, sizes = self.crop_low_resolution(
+        #     imgs, masks, corners, sizes
+        # )
+        # self.estimate_exposure_errors(corners, imgs, masks)
+
         seam_masks = self.find_seam_masks(imgs, corners, masks)
+        # time_end = time.time()
+        # print('all time cost', time_end - time_start, 's')
         imgs = self.resize_final_resolution()
         imgs, masks, corners, sizes = self.warp_final_resolution(imgs, cameras)
 
-        imgs, masks, corners, sizes = self.crop_final_resolution(
-            imgs, masks, corners, sizes
-        )
+        # imgs, masks, corners, sizes = self.crop_final_resolution(
+        #     imgs, masks, corners, sizes
+        # )
 
         self.set_masks(masks)
-        imgs = self.compensate_exposure_errors(corners, imgs)
+
+        #imgs = self.compensate_exposure_errors(corners, imgs)
+
         seam_masks = self.resize_seam_masks(seam_masks)
+
         self.initialize_composition(corners, sizes)
+
         self.blend_images(imgs, seam_masks, corners)
-        return self.create_final_panorama(),features,matches
+
+        return self.create_final_panorama(),features,matches,seam_masks
 
     def initialize_registration(self, FpsArray):
         self.img_handler.set_Fps_Array(FpsArray)
@@ -151,7 +163,7 @@ class Stitcher:
         )
         #self.img_handler.img_names=names
         self.img_handler.img_sizes = sizes
-        return imgs, features, matches
+        return imgs, features, matches,
 
     def subset_video(self, imgs, features, matches):
         names, sizes, imgs, features, matches = self.subsetter.subset(
@@ -258,6 +270,7 @@ class Stitcher:
                 )
             else:
                 self.blender.feed(img, mask, corner)
+
 
     def create_final_panorama(self):
         if not self.timelapser.do_timelapse:

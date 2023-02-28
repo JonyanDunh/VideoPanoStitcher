@@ -1,5 +1,8 @@
+import time
+
 import cv2 as cv
 import numpy as np
+from numba import jit
 
 
 class Blender:
@@ -10,7 +13,7 @@ class Blender:
         "feather",
         "no",
     )
-    DEFAULT_BLENDER = "multiband"
+    DEFAULT_BLENDER = "no"
     DEFAULT_BLEND_STRENGTH = 5
 
     def __init__(
@@ -37,8 +40,10 @@ class Blender:
 
         self.blender.prepare(dst_sz)
 
+
     def feed(self, img, mask, corner):
         self.blender.feed(cv.UMat(img.astype(np.int16)), mask, corner)
+
 
     def blend(self):
         result = None
