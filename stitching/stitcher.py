@@ -97,9 +97,9 @@ class Stitcher:
 
         imgs = self.resize_medium_resolution()
 
-        if (features is None) and (matches is None):
-            features = self.find_features(imgs)
-            matches = self.match_features(features)
+        # if (features is None) and (matches is None):
+        features = self.find_features(imgs)
+        matches = self.match_features(features)
 
         imgs, features, matches = self.subset(imgs, features, matches)
         cameras = self.estimate_camera_parameters(features, matches)
@@ -113,10 +113,10 @@ class Stitcher:
 
         self.prepare_cropper(imgs, masks, corners, sizes)
         # time_start = time.time()
-        # imgs, masks, corners, sizes = self.crop_low_resolution(
-        #     imgs, masks, corners, sizes
-        # )
-        # self.estimate_exposure_errors(corners, imgs, masks)
+        imgs, masks, corners, sizes = self.crop_low_resolution(
+            imgs, masks, corners, sizes
+        )
+        self.estimate_exposure_errors(corners, imgs, masks)
 
         seam_masks = self.find_seam_masks(imgs, corners, masks)
         # time_end = time.time()
@@ -124,13 +124,13 @@ class Stitcher:
         imgs = self.resize_final_resolution()
         imgs, masks, corners, sizes = self.warp_final_resolution(imgs, cameras)
 
-        # imgs, masks, corners, sizes = self.crop_final_resolution(
-        #     imgs, masks, corners, sizes
-        # )
+        imgs, masks, corners, sizes = self.crop_final_resolution(
+            imgs, masks, corners, sizes
+        )
 
         self.set_masks(masks)
 
-        #imgs = self.compensate_exposure_errors(corners, imgs)
+        imgs = self.compensate_exposure_errors(corners, imgs)
 
         seam_masks = self.resize_seam_masks(seam_masks)
 
