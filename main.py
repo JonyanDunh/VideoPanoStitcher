@@ -22,7 +22,7 @@ def runStitcher(threadID, FpsArray):
     global features
     global matches
     global seam_masks
-    settings = {"crop": False, "confidence_threshold": 0.55}
+    settings = {"crop": True, "confidence_threshold": 0.5}
     stitcher = AffineStitcher(compensator="no", **settings, blender_type="no")
     panorama, tmp_features, tmp_matches, tmp_seam_masks = stitcher.stitch(
         FpsArray, features, matches, seam_masks)
@@ -38,10 +38,12 @@ def runStitcher(threadID, FpsArray):
 #                      cv2.VideoCapture("video/video_pano2.mp4"),
 #                      cv2.VideoCapture("video/video_pano3.mp4"),
 #                      cv2.VideoCapture("video/video_pano4.mp4")]
-VideoCaptureArray = [cv2.VideoCapture("rtsp://192.168.1.9:554/user=admin&password=&channel=1&stream=0.sdp?real_stream--rtp-caching=100"),
-                     cv2.VideoCapture("rtsp://192.168.1.197:554/user=admin&password=&channel=1&stream=0.sdp?real_stream--rtp-caching=100"),
-                     cv2.VideoCapture("rtsp://192.168.1.10:554/user=admin&password=&channel=1&stream=0.sdp?real_stream--rtp-caching=100"),
-                     cv2.VideoCapture("rtsp://192.168.1.17:554/user=admin&password=&channel=1&stream=0.sdp?real_stream--rtp-caching=100")]
+VideoCaptureArray = [
+    cv2.VideoCapture("rtsp://192.168.1.10:554/user=admin&password=&channel=1&stream=0.sdp?real_stream--rtp-caching=1"),
+    cv2.VideoCapture("rtsp://192.168.1.17:554/user=admin&password=&channel=1&stream=0.sdp?real_stream--rtp-caching=1"),
+    cv2.VideoCapture("rtsp://192.168.1.197:554/user=admin&password=&channel=1&stream=0.sdp?real_stream--rtp-caching=1"),
+    cv2.VideoCapture("rtsp://192.168.1.9:554/user=admin&password=&channel=1&stream=0.sdp?real_stream--rtp-caching=1")
+]
 
 
 class ThreadWithReturnValue(Thread):
@@ -74,7 +76,7 @@ if __name__ == '__main__':
             for thread in thread_list:
                 thread.start()
             for thread in thread_list:
-                Video=thread.join()
+                Video = thread.join()
                 # videowriter.write(Video)
                 # thread.join()
                 cv2.imshow('frame', Video)
